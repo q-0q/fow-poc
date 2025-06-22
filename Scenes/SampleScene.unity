@@ -347,6 +347,10 @@ MonoBehaviour:
   visionRadius: 10
   worldMin: {x: -15, y: -15}
   worldMax: {x: 15, y: 15}
+  textureResolution: 256
+  computeShader: {fileID: 7200000, guid: 815748c8fca7745e7afcf60d0ccd401d, type: 3}
+  occlusionTexture: {fileID: 8400000, guid: 7aaf9252bd37e4c7391b1138f12ef333, type: 2}
+  outputTexture: {fileID: 8400000, guid: 1b41669c2accb40448aa3a7ead680e16, type: 2}
 --- !u!4 &143584351
 Transform:
   m_ObjectHideFlags: 0
@@ -616,7 +620,6 @@ GameObject:
   - component: {fileID: 340517611}
   - component: {fileID: 340517610}
   - component: {fileID: 340517609}
-  - component: {fileID: 340517608}
   m_Layer: 0
   m_Name: FogPlane
   m_TagString: Untagged
@@ -624,28 +627,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!64 &340517608
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 340517607}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &340517609
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -666,7 +647,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4c9b8eaa3983e47f68ee5221229fb8cc, type: 2}
+  - {fileID: 2100000, guid: a6b32e0570dd7467db6ec49559c7b601, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1309,7 +1290,6 @@ GameObject:
   - component: {fileID: 1203857364}
   - component: {fileID: 1203857363}
   - component: {fileID: 1203857362}
-  - component: {fileID: 1203857361}
   m_Layer: 0
   m_Name: FogPlane (1)
   m_TagString: Untagged
@@ -1317,28 +1297,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!64 &1203857361
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1203857360}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1203857362
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1359,7 +1317,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4c9b8eaa3983e47f68ee5221229fb8cc, type: 2}
+  - {fileID: 2100000, guid: a6b32e0570dd7467db6ec49559c7b601, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1565,7 +1523,6 @@ GameObject:
   - component: {fileID: 1409582515}
   - component: {fileID: 1409582514}
   - component: {fileID: 1409582513}
-  - component: {fileID: 1409582512}
   m_Layer: 0
   m_Name: FogPlane (2)
   m_TagString: Untagged
@@ -1573,28 +1530,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!64 &1409582512
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1409582511}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1409582513
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1615,7 +1550,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4c9b8eaa3983e47f68ee5221229fb8cc, type: 2}
+  - {fileID: 2100000, guid: a6b32e0570dd7467db6ec49559c7b601, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

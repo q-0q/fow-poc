@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class CameraController : MonoBehaviour
+public class UnitController : MonoBehaviour
 {
 
-    public static CameraController Singleton;
+    public static UnitController Singleton;
 
     public Unit selectedUnit;
     private Camera _camera;
@@ -47,6 +47,8 @@ public class CameraController : MonoBehaviour
     {
         if (!Input.GetMouseButtonDown(0)) return;
         Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
+        
+        // todo put units on a layer and layermask for better performance
         if (!Physics.Raycast(ray, out RaycastHit hit)) return;
         var unit = hit.transform.GetComponent<Unit>();
         if (unit is null) return;
@@ -62,5 +64,10 @@ public class CameraController : MonoBehaviour
         Debug.DrawRay(selectedUnitTransform.position, Vector3.up * 15f, Color.green);
         cameraHolder.position =
             Vector3.Lerp(cameraHolder.position, selectedUnitTransform.position, Time.deltaTime * 8f);
+    }
+
+    public List<Unit> GetAlignedUnits()
+    {
+        return alignmentUnitMap[selectedUnit.alignment];
     }
 }

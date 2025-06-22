@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FogOfWarRaymarchMaterial
-  m_Shader: {fileID: 4800000, guid: b61dfa7d8112f46a7a8d1c1a9008b5e5, type: 3}
+  m_Name: FogOfWarComputeDisplay
+  m_Shader: {fileID: 4800000, guid: 6c3c65799ed3d4a9da47b62da6e8f7b7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,16 +23,13 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _OcclusionTexture:
-        m_Texture: {fileID: 8400000, guid: 7aaf9252bd37e4c7391b1138f12ef333, type: 2}
-        m_Scale: {x: 0.5, y: 0.5}
+    - _FogTex:
+        m_Texture: {fileID: 8400000, guid: 1b41669c2accb40448aa3a7ead680e16, type: 2}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats: []
     m_Colors:
-    - _FogColor: {r: 0.01194085, g: 0, b: 0.13207543, a: 0.7294118}
-    - _PlayerPosRadius: {r: 1.0207194, g: -2.1348484, b: 10, a: 0}
+    - _FogColor: {r: 0.04397121, g: 0, b: 0.13207549, a: 0.5529412}
     - _VisibleColor: {r: 1, g: 1, b: 1, a: 0}
-    - _WorldMax: {r: 15, g: 15, b: 0, a: 0}
-    - _WorldMin: {r: -15, g: -15, b: 0, a: 0}
   m_BuildTextureStacks: []

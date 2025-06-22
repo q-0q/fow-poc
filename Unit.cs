@@ -40,7 +40,7 @@ public class Unit : MonoBehaviour
 
     void HandleSelectedMovement()
     {
-        if (CameraController.Singleton.selectedUnit != this) return;
+        if (UnitController.Singleton.selectedUnit != this) return;
 
         Vector2 vector2 = new Vector2(0, 0);
         if (Input.GetKey(KeyCode.W)) vector2 += new Vector2(0, 1);
@@ -55,7 +55,7 @@ public class Unit : MonoBehaviour
     
     void HandleUnselectedMovement()
     {
-        if (CameraController.Singleton.selectedUnit == this) return;
+        if (UnitController.Singleton.selectedUnit == this) return;
         
         float time = Time.time * _speed * 0.1f;
 
