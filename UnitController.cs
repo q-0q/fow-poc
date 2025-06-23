@@ -11,8 +11,8 @@ public class UnitController : MonoBehaviour
 
     public Unit selectedUnit;
     private Camera _camera;
-    
-    private Dictionary<int, List<Unit>> alignmentUnitMap;
+
+    public Dictionary<int, List<Unit>> alignmentUnitMap;
 
     private Vector2 _cameraRotationAxes;
 

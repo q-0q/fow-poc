@@ -10,17 +10,13 @@ public class FogOfWarComputeShaderInterface
     private RenderTexture outputTexture;
     private ComputeBuffer observerBuffer;
     private int kernelID;
-
     
-    private int textureResolution = 256;
-
-    public void Start(ComputeShader _fogComputeShader, RenderTexture _occlusionTexture, RenderTexture _outputTexture, int _textureResolution)
+    public void Start(ComputeShader _fogComputeShader, RenderTexture _occlusionTexture, RenderTexture _outputTexture)
     {
 
         fogComputeShader = _fogComputeShader;
         occlusionTexture = _occlusionTexture;
-    
-        textureResolution = _textureResolution;
+        
         outputTexture = _outputTexture;
         outputTexture.enableRandomWrite = true;
         outputTexture.filterMode = FilterMode.Point;
@@ -43,10 +39,10 @@ public class FogOfWarComputeShaderInterface
         fogComputeShader.SetBuffer(kernelID, "Observers", observerBuffer);
         fogComputeShader.SetVector("WorldMin", worldMin);
         fogComputeShader.SetVector("WorldMax", worldMax);
-        fogComputeShader.SetInts("TextureSize", textureResolution, textureResolution);
+        fogComputeShader.SetInts("TextureSize", outputTexture.width, outputTexture.height);
 
-        int threadGroupsX = Mathf.CeilToInt(textureResolution / 8f);
-        int threadGroupsY = Mathf.CeilToInt(textureResolution / 8f);
+        int threadGroupsX = Mathf.CeilToInt(outputTexture.width / 8f);
+        int threadGroupsY = Mathf.CeilToInt(outputTexture.height / 8f);
 
         fogComputeShader.Dispatch(kernelID, threadGroupsX, threadGroupsY, 1);
     }

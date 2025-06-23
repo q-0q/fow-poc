@@ -30,7 +30,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
         float2 dir = normalize(worldPos - origin);
         bool blocked = false;
-        const int steps = 64;
+        const int steps = 128;
         for (int s = 0; s < steps; ++s)
         {
             float t = s / (float)(steps - 1);

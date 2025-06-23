@@ -44,14 +44,65 @@ public class FogOfWarController : MonoBehaviour
     {
         // Setup output texture
         _fogCompute = new FogOfWarComputeShaderInterface();
-        _fogCompute.Start(computeShader, occlusionTexture, outputTexture, textureResolution);
+        _fogCompute.Start(computeShader, occlusionTexture, outputTexture);
 
     }
     
 
     void ComputeShader()
     {
+        HandleUnitVisibility();
         _fogCompute.Update(worldMin, worldMax);
+    }
+
+    void HandleUnitVisibility()
+    {
+        Unit.SetRevealedThisFrameFalse?.Invoke();
+        
+        foreach (var (alignment, units) in UnitController.Singleton.alignmentUnitMap)
+        {
+            if (alignment == UnitController.Singleton.selectedUnit.alignment)
+            {
+                foreach (var unit in units)
+                {
+                    unit.SetRevealedThisFrame(true);
+                }
+            }
+
+            else
+            {
+                foreach (var unalignedUnit in units)
+                {
+                    foreach (var alignedUnit in UnitController.Singleton.GetAlignedUnits())
+                    {
+                        if (Vector3.Distance(unalignedUnit.transform.position, alignedUnit.transform.position) >
+                            alignedUnit.viewRange)
+                        {
+                            continue;
+                        }
+                        
+                        var direction = unalignedUnit.transform.position - alignedUnit.transform.position;
+                        var unitDistance = Vector3.Distance(unalignedUnit.transform.position,
+                            alignedUnit.transform.position);
+                        var maxRaycastDistance = Mathf.Min(unitDistance, alignedUnit.viewRange);
+                        
+                        if (Physics.Raycast(alignedUnit.transform.position, direction, out RaycastHit hit, maxRaycastDistance,
+                                LayerMask.GetMask("Terrain")))
+                        {
+                            Debug.DrawRay(alignedUnit.transform.position, direction, Color.red);
+                            Debug.Log(hit.transform.name);
+                        }
+                        else
+                        {
+                            unalignedUnit.SetRevealedThisFrame(true);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        Unit.SetMeshRendererVisibility?.Invoke();
     }
     
     

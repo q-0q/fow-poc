@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Unit : MonoBehaviour
 {
@@ -17,6 +20,9 @@ public class Unit : MonoBehaviour
     
     private float offsetX;
     private float offsetZ;
+
+    public static Action SetMeshRendererVisibility;
+    public static Action SetRevealedThisFrameFalse;
     
     // Start is called before the first frame update
     void Start()
@@ -72,8 +78,25 @@ public class Unit : MonoBehaviour
         _revealedThisFrame = val;
     }
     
-    public bool GetRevealedThisFrame()
+    private void SetMeshRenderer()
     {
-        return _revealedThisFrame;
+        GetComponent<MeshRenderer>().enabled = _revealedThisFrame;
+    }
+
+    private void OnEnable()
+    {
+        SetMeshRendererVisibility += SetMeshRenderer;
+        SetRevealedThisFrameFalse += OnSetRevealedThisFrameFalse;
+    }
+
+    private void OnSetRevealedThisFrameFalse()
+    {
+        SetRevealedThisFrame(false);
+    }
+
+    private void OnDestroy()
+    {
+        SetMeshRendererVisibility -= SetMeshRenderer;
+        SetRevealedThisFrameFalse -= OnSetRevealedThisFrameFalse;
     }
 }
