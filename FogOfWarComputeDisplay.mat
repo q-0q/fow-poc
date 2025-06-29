@@ -29,8 +29,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BlurSize: 0
+    - _BlurSize: 0.0025
     m_Colors:
-    - _FogColor: {r: 0.04397115, g: 0, b: 0.1320754, a: 0.7647059}
+    - _FogColor: {r: 0.04397112, g: 0, b: 0.13207537, a: 0.5647059}
     - _VisibleColor: {r: 0.043137256, g: 0, b: 0.13333334, a: 0}
   m_BuildTextureStacks: []
