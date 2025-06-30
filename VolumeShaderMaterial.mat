@@ -29,9 +29,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Alpha: 0.02
-    - _StepSize: 0.2
+    - _Alpha: 0.08
+    - _StepSize: 0.1
     m_Colors:
+    - _BottomColor: {r: 0.27871084, g: 0.2769223, b: 0.462264, a: 1}
     - _OccludedColor: {r: 1, g: 1, b: 1, a: 0}
-    - _VisibleColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TopColor: {r: 0, g: 0.007417229, b: 0.2547169, a: 1}
+    - _VisibleColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

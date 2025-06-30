@@ -5,8 +5,8 @@ Shader "Unlit/VolumeShader"
         _MainTex ("Texture", 3D) = "white" {}
         _Alpha ("Alpha", float) = 0.02
         _StepSize ("Step Size", float) = 0.01
-        _VisibleColor("Visible Color", Color) = (1,1,1,1)
-        _OccludedColor("Occluded Color", Color) = (0,0,0,0.1)
+        _TopColor("Top Color", Color) = (1,1,1,1)
+        _BottomColor("Bottom Color", Color) = (0,0,0,0.1)
     }
     SubShader
     {
@@ -24,7 +24,7 @@ Shader "Unlit/VolumeShader"
             #include "UnityCG.cginc"
 
             // Maximum number of raymarching samples
-            #define MAX_STEP_COUNT 128
+            #define MAX_STEP_COUNT 64
 
             // Allowed floating point inaccuracy
             #define EPSILON 0.00001f
@@ -45,8 +45,8 @@ Shader "Unlit/VolumeShader"
             float4 _MainTex_ST;
             float _Alpha;
             float _StepSize;
-            float4 _VisibleColor;
-            float4 _OccludedColor;
+            float4 _TopColor;
+            float4 _BottomColor;
 
             v2f vert (appdata v)
             {
@@ -70,31 +70,48 @@ Shader "Unlit/VolumeShader"
                 return color;
             }
 
-            fixed4 frag(v2f i) : SV_Target
+            sampler2D _CameraDepthTexture;
+            
+            fixed4 frag(v2f i, out float depth : SV_Depth) : SV_Target
             {
-                // Start raymarching at the front surface of the object
                 float3 rayOrigin = i.objectVertex;
-
-                // Use vector from camera to object surface to get ray direction
                 float3 rayDirection = mul(unity_WorldToObject, float4(normalize(i.vectorToSurface), 1));
 
                 float4 color = float4(0, 0, 0, 0);
                 float3 samplePosition = rayOrigin;
 
-                // Raymarch through object space
-                for (int i = 0; i < MAX_STEP_COUNT; i++)
+                bool depthSet = false;
+                float finalDepth = 1.0; // Fallback to far plane if never set
+
+                for (int j = 0; j < MAX_STEP_COUNT; j++)
                 {
-                    // Accumulate color only within unit cube bounds
-                    if(max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
+                    if (max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
                     {
                         float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
-                        sampledColor = lerp(_VisibleColor, _OccludedColor, sampledColor[0]);
+                        sampledColor = lerp(_TopColor, float4(0, 0, 0, 0), sampledColor.r);
+                        if (sampledColor.a > 0.001)
+                        {
+                            sampledColor = lerp(sampledColor, _BottomColor, samplePosition.g);
+                        }
                         sampledColor.a *= _Alpha;
+
+                        // Only write depth the first time we hit visible voxel content
+                        if (!depthSet && sampledColor.a > 0.001)
+                        {
+                            float4 clipPos = UnityObjectToClipPos(samplePosition);
+                            finalDepth = clipPos.z / clipPos.w;
+                            depthSet = true;
+                        }
+
                         color = BlendUnder(color, sampledColor);
+                        if (color.a > 0.99)
+                            break;
+
                         samplePosition += rayDirection * _StepSize;
                     }
                 }
 
+                depth = finalDepth;
                 return color;
             }
             ENDCG

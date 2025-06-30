@@ -31,7 +31,7 @@ Material:
     m_Floats:
     - _Alpha: 1
     - _EdgeSoftness: 0
-    - _StepSize: 0.01
+    - _StepSize: 0.07
     - _Steps: 24
     m_Colors:
     - _BoxMax: {r: 15, g: 0, b: 15, a: 0}

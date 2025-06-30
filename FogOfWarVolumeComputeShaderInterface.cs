@@ -25,6 +25,8 @@ public class FogOfWarVolumeComputeShaderInterface
         outputTexture.enableRandomWrite = true;
         outputTexture.Create();;
         kernelID = fogComputeShader.FindKernel("CSMain");
+        
+        Camera.main.depthTextureMode |= DepthTextureMode.Depth;
 
         observerBuffer = null;
 
