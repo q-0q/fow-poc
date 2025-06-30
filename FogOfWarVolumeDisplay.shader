@@ -1,113 +1,109 @@
-Shader "Custom/URP/FogOfWarVolumetric"
+Shader "Custom/FogOfWar/VolumeRaymarch"
 {
     Properties
     {
-        _FogVolumeTex("Fog Volume", 3D) = "" {}
+        _ResultVolume("Volume Texture", 3D) = "" {}
+        _Steps("Raymarch Steps", Range(16,256)) = 96
         _VisibleColor("Visible Color", Color) = (1,1,1,1)
-        _FogColor("Fog Color", Color) = (0,0,0,1)
-        _WorldMin("World Min (XYZ)", Vector) = (0,0,0,0)
-        _WorldMax("World Max (XYZ)", Vector) = (10,5,10,0)
-        _StepSize("Raymarch Step Size", Float) = 0.1
-        _Density("Fog Density", Float) = 1.5
+        _OccludedColor("Occluded Color", Color) = (0,0,0,0.1)
+        _EdgeSoftness("Edge Softness", Float) = 0.01
+        _BoxMin("Box Min", Vector) = (0, 0, 0)
+        _BoxMax("Box Max", Vector) = (10, 0, 10)
     }
 
     SubShader
     {
-        Tags { "Queue" = "Transparent" "RenderType" = "Transparent" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
         Pass
         {
-            Blend SrcAlpha OneMinusSrcAlpha
             ZWrite Off
-            Cull Back
+            Cull Off
+            Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            TEXTURE3D(_FogVolumeTex);
-            SAMPLER(sampler_FogVolumeTex);
-
-            float4 _VisibleColor;
-            float4 _FogColor;
-            float3 _WorldMin;
-            float3 _WorldMax;
-            float _StepSize;
-            float _Density;
-
             struct Attributes
             {
                 float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float3 worldPos : TEXCOORD0;
-                float3 viewDir : TEXCOORD1;
+                float3 rayOriginOS : TEXCOORD0;
+                float3 rayDirOS : TEXCOORD1;
             };
+
+            TEXTURE3D(_ResultVolume);
+            SAMPLER(sampler_ResultVolume);
+            float4 _VisibleColor;
+            float4 _OccludedColor;
+            float3 _BoxMin;
+            float3 _BoxMax;
+            int _Steps;
+            float _EdgeSoftness;
 
             Varyings vert(Attributes v)
             {
                 Varyings o;
-                float3 worldPos = TransformObjectToWorld(v.positionOS.xyz);
-                o.positionCS = TransformWorldToHClip(worldPos);
-                o.worldPos = worldPos;
 
-                // View direction from camera
-                float3 viewDir = normalize(worldPos - _WorldSpaceCameraPos);
-                o.viewDir = viewDir;
+                float3 worldPos = TransformObjectToWorld(v.positionOS.xyz);
+                float3 camPos = _WorldSpaceCameraPos;
+
+                // ray origin in object space is camera position transformed to object space
+                float3 rayOriginOS = mul(unity_WorldToObject, float4(camPos, 1)).xyz;
+
+                // ray direction in world space from camera to vertex position
+                float3 rayDirWS = normalize(worldPos - camPos);
+
+                // ray direction in object space
+                float3 rayDirOS = mul((float3x3)unity_WorldToObject, rayDirWS);
+
+                o.rayOriginOS = rayOriginOS;
+                o.rayDirOS = rayDirOS;
+
+                o.positionCS = TransformObjectToHClip(v.positionOS);
 
                 return o;
             }
 
+            // Ray-box intersection in object space
+            bool RayBoxIntersection(float3 ro, float3 rd, float3 boxMin, float3 boxMax, out float tMin, out float tMax)
+            {
+                float3 invDir = 1.0 / rd;
+                float3 t0 = (boxMin - ro) * invDir;
+                float3 t1 = (boxMax - ro) * invDir;
+                float3 tmin3 = min(t0, t1);
+                float3 tmax3 = max(t0, t1);
+                tMin = max(max(tmin3.x, tmin3.y), tmin3.z);
+                tMax = min(min(tmax3.x, tmax3.y), tmax3.z);
+                return tMax > max(tMin, 0.0);
+            }
+            
+
             float4 frag(Varyings i) : SV_Target
             {
-                float3 rayOrigin = i.worldPos;
-                float3 rayDir = normalize(i.viewDir);
 
-                // Intersect ray with box volume (world space AABB)
-                float3 tMin = (_WorldMin - rayOrigin) / rayDir;
-                float3 tMax = (_WorldMax - rayOrigin) / rayDir;
-                float3 t1 = min(tMin, tMax);
-                float3 t2 = max(tMin, tMax);
+                float3 rayOrigin = i.rayOriginOS;
+                float3 rayDir = normalize(i.rayDirOS);
 
-                float tNear = max(max(t1.x, t1.y), t1.z);
-                float tFar = min(min(t2.x, t2.y), t2.z);
-
-                if (tFar < 0 || tNear > tFar)
+                float tMin, tMax;
+                if (!RayBoxIntersection(rayOrigin, rayDir, float3(-30, -30, -30), float3(30, 30, 30), tMin, tMax))
                     discard;
 
-                float t = max(tNear, 0); // Start after camera
-                float4 finalColor = float4(0, 0, 0, 0);
+                // Hardcoded color just to confirm raymarching is working
+                return float4(1, 0, 0, 1); // bright red
 
-                const int maxSteps = 128;
-                int steps = 0;
-
-                while (t < tFar && steps < maxSteps && finalColor.a < 1.0)
-                {
-                    float3 samplePos = rayOrigin + t * rayDir;
-
-                    float3 uvw = (samplePos - _WorldMin) / (_WorldMax - _WorldMin);
-                    if (any(uvw < 0) || any(uvw > 1)) break;
-
-                    float visibility = SAMPLE_TEXTURE3D(_FogVolumeTex, sampler_FogVolumeTex, uvw).r;
-
-                    float fogAmount = (1.0 - visibility) * _Density * _StepSize;
-                    float3 fogRGB = lerp(_FogColor.rgb, _VisibleColor.rgb, visibility);
-
-                    // Alpha compositing (front-to-back)
-                    float alpha = fogAmount * (1.0 - finalColor.a);
-                    finalColor.rgb += fogRGB * alpha;
-                    finalColor.a += alpha;
-
-                    t += _StepSize;
-                    steps++;
-                }
-
-                return finalColor;
+  
             }
+
+
             ENDHLSL
         }
     }
+    FallBack "Unlit/Transparent"
 }

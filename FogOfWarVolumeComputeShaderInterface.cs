@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class FogOfWarVolumeComputeShaderInterface
 {
+    public Material fogMaterial;
     public ComputeShader fogComputeShader;
     public RenderTexture occlusionTexture;
     
@@ -11,10 +12,11 @@ public class FogOfWarVolumeComputeShaderInterface
     private ComputeBuffer observerBuffer;
     private int kernelID;
     
-    public void Start(ComputeShader _fogComputeShader, RenderTexture _occlusionTexture, RenderTexture _outputTexture)
+    public void Start(ComputeShader _fogComputeShader, Material _fogMaterial, RenderTexture _occlusionTexture, RenderTexture _outputTexture)
     {
 
         fogComputeShader = _fogComputeShader;
+        fogMaterial = _fogMaterial;
         occlusionTexture = _occlusionTexture;
         
         outputTexture = _outputTexture;
@@ -46,6 +48,10 @@ public class FogOfWarVolumeComputeShaderInterface
         int groupsY = Mathf.CeilToInt(outputTexture.height / 8.0f);
         int groupsZ = outputTexture.volumeDepth; // since thread group size z is 1
         fogComputeShader.Dispatch(kernelID, groupsX, groupsY, groupsZ);
+        
+        fogMaterial.SetVector("_BoxMin", worldMin);
+        fogMaterial.SetVector("_BoxMax", worldMax);
+
         
     }
     

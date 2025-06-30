@@ -14,51 +14,63 @@ int3 VolumeSize;
 [numthreads(8,8,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    // Bounds check
     if (id.x >= VolumeSize.x || id.y >= VolumeSize.y || id.z >= VolumeSize.z) return;
 
-    // Normalize voxel coordinate to [0,1] in 3D texture space
-    float3 voxelNorm;
-    voxelNorm.x = (id.x + 0.5f) / VolumeSize.x;
-    voxelNorm.y = (id.y + 0.5f) / VolumeSize.y;
-    voxelNorm.z = (id.z + 0.5f) / VolumeSize.z;
-
-    // Map to world position
+    float3 voxelNorm = (id + 0.5f) / VolumeSize;
     float3 worldPos = lerp(WorldMin, WorldMax, voxelNorm);
 
-    // Sample occlusion texture (top-down view, XZ)
     float2 uvOcc = (worldPos.xz - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
     float occlusion = OcclusionTex.SampleLevel(sampler_OcclusionTex, uvOcc, 0).r;
 
     float visible = 0.0f;
 
-    // Only proceed if not occluded (i.e., walkable space)
-    if (occlusion >= 0.5f)
+    for (int i = 0; i < ObserverCount; ++i)
     {
-        for (int i = 0; i < ObserverCount; ++i)
+        float3 observerPos = float3(Observers[i].x, Observers[i].y, Observers[i].z);
+        float radius = Observers[i].w;
+
+        float3 toVoxel = worldPos - observerPos;
+        float dist = length(toVoxel);
+
+        if (dist > radius)
+            continue;
+
+        if (occlusion < 0.5f)
         {
-            float3 observerPos = float3(Observers[i].x, Observers[i].y, Observers[i].z);
-            float radius = Observers[i].w;
+            // Obstacle voxel: reveal if within range, ignore line of sight
+            visible = 1.0f;
+            break;
+        }
+        else
+        {
+            // Non-obstacle: raymarch to check visibility
+            float2 dirXZ = normalize(toVoxel.xz);
+            float2 originXZ = observerPos.xz;
+            float2 targetXZ = worldPos.xz;
 
-            float3 toVoxel = worldPos - observerPos;
-            float dist = length(toVoxel);
+            const int steps = 64;
+            bool blocked = false;
+            for (int s = 0; s < steps; ++s)
+            {
+                float t = s / (float)(steps - 1);
+                float2 sampleXZ = lerp(originXZ, targetXZ, t);
+                float2 sampleUV = (sampleXZ - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
 
-            if (dist <= radius)
+                float occSample = OcclusionTex.SampleLevel(sampler_OcclusionTex, sampleUV, 0).r;
+                if (occSample < 0.5f)
+                {
+                    blocked = true;
+                    break;
+                }
+            }
+
+            if (!blocked)
             {
                 visible = 1.0f;
                 break;
             }
         }
     }
-    else
-    {
-        // Always reveal obstacles (so they show up in slice view)
-        visible = 1.0f;
-    }
-
-    // Optional vertical fade to simulate fog falloff near top/bottom
-    // float heightNorm = (worldPos.y - WorldMin.y) / (WorldMax.y - WorldMin.y);
-    // float verticalFade = smoothstep(0.1, 0.0, heightNorm) * smoothstep(0.9, 1.0, heightNorm);
 
     ResultVolume[id.xyz] = visible;
 }

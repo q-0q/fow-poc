@@ -17,6 +17,7 @@ public class FogOfWarController : MonoBehaviour
     public RenderTexture outputTexture;
     
     public ComputeShader computeVolumeShader;
+    public Material computeVolumeMaterial;
     public RenderTexture outputVolumeTexture;
 
     private FogOfWarComputeShaderInterface _fogCompute;
@@ -50,7 +51,7 @@ public class FogOfWarController : MonoBehaviour
         // _fogCompute = new FogOfWarComputeShaderInterface();
         // _fogCompute.Start(computeShader, occlusionTexture, outputTexture);
         _fogVolumeCompute = new FogOfWarVolumeComputeShaderInterface();
-        _fogVolumeCompute.Start(computeVolumeShader, occlusionTexture, outputVolumeTexture);
+        _fogVolumeCompute.Start(computeVolumeShader, computeVolumeMaterial, occlusionTexture, outputVolumeTexture);
 
     }
     
