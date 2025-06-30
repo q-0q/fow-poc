@@ -163,7 +163,7 @@ Shader "Unlit/VolumeShader"
                         distortedUVW += noise * 0.015;
 
 
-                        float4 sampledColor = tex3D(_MainTex, uvw);
+                        float4 sampledColor = tex3D(_MainTex, distortedUVW);
 
                         sampledColor = lerp(_TopColor, float4(0, 0, 0, 0), sampledColor.r);
                         if (sampledColor.a > 0.001)

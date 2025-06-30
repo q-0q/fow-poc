@@ -21,14 +21,10 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float3 voxelNorm = (id + 0.5f) / VolumeSize; // [0,1] normalized
     float3 worldPos = mul(VolumeToWorldMatrix, float4(voxelNorm, 1.0)).xyz;
 
-
-    // Project world position into local 2D plane used by this volume’s occlusion map
-    float3 volumeNormPos = mul(WorldToVolumeMatrix, float4(worldPos, 1.0)).xyz; // ✅
-    float2 uvOcc = volumeNormPos.xz; // or yz / xz depending on occlusion orientation
-
-
+    
+    float2 uvOcc = (worldPos.xz - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
     float occlusion = OcclusionTex.SampleLevel(sampler_OcclusionTex, uvOcc, 0).r;
-
+    
     float visible = 0.0f;
 
     for (int i = 0; i < ObserverCount; ++i)
@@ -61,7 +57,13 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             {
                 float t = s / (float)(steps - 1);
                 float2 sampleXZ = lerp(originXZ, targetXZ, t);
-                float2 sampleUV = (sampleXZ - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
+                
+                float3 sampleWorld = float3(sampleXZ.x, worldPos.y, sampleXZ.y);
+                
+                float2 sampleUV = (sampleWorld.xz - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
+                
+
+
         
                 float occSample = OcclusionTex.SampleLevel(sampler_OcclusionTex, sampleUV, 0).r;
                 if (occSample < 0.5f)

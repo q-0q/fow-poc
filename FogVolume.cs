@@ -9,13 +9,18 @@ public class FogVolume : MonoBehaviour
     
     public RenderTexture OutputVolumeTexture;
     public RenderTexture OcclusionTexture;
+
+    private Camera _occlusionCamera;
     
     // Start is called before the first frame update
     void Start()
     {
         OutputVolumeTexture = CreateVolumeTexture(256);
         OcclusionTexture = CreateOcclusionTexture(256);
-        GetComponentInChildren<Camera>().targetTexture = OcclusionTexture;
+        _occlusionCamera = GetComponentInChildren<Camera>();
+
+        _occlusionCamera.targetTexture = OcclusionTexture;
+        _occlusionCamera.transform.SetParent(null);
     }
     
     RenderTexture CreateVolumeTexture(int size)
