@@ -45,6 +45,7 @@ public class FogOfWarVolumeComputeShaderInterface
         fogComputeShader.SetVector("WorldMin", worldMin);
         fogComputeShader.SetVector("WorldMax", worldMax);
         fogComputeShader.SetInts("VolumeSize", outputTexture.width, outputTexture.height, outputTexture.volumeDepth);
+        
 
         int groupsX = Mathf.CeilToInt(outputTexture.width / 8.0f);
         int groupsY = Mathf.CeilToInt(outputTexture.height / 8.0f);
@@ -53,6 +54,7 @@ public class FogOfWarVolumeComputeShaderInterface
         
         fogMaterial.SetVector("_BoxMin", worldMin);
         fogMaterial.SetVector("_BoxMax", worldMax);
+        fogMaterial.SetFloat("_Time", Time.time);
 
         
     }

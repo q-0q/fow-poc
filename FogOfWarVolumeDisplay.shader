@@ -81,38 +81,42 @@ Shader "Custom/FogOfWar/VolumeRaymarch"
                 float3 rayOrigin = i.objectVertex;
                 float3 rayDir = normalize(i.rayDirOS);
 
-                float4 accumulated = float4(0,0,0,0);
+                float4 accumulated = float4(0, 0, 0, 0);
                 float3 samplePos = rayOrigin;
 
-                // Raymarch _Steps times or until opaque
+                float time = _Time.y;
+                float noiseScale = 5.0;       // Controls frequency of the noise
+                float noiseStrength = 10.01;   // Controls how far the uvw is displaced
+
                 [unroll]
                 for (int step = 0; step < _Steps; step++)
                 {
                     if (!IsInsideUnitCube(samplePos))
                         break;
 
-                    // Remap from [-0.5,0.5] to [0,1] for texture lookup
                     float3 uvw = samplePos + float3(0.5, 0.5, 0.5);
 
-                    // Sample the volume texture red channel for visibility
+                    float noiseVal = frac(sin(dot(uvw, float3(12.9898, 78.233, 37.719))) * 43758.5453);
+                    
                     float vis = SAMPLE_TEXTURE3D(_ResultVolume, sampler_ResultVolume, uvw).r;
 
-                    // Blend between occluded and visible colors based on visibility
                     float4 col = lerp(_OccludedColor, _VisibleColor, vis);
+                    col.a *= _Alpha * (0.5 + 0.5 * noiseVal); // wiggle alpha a bit
 
-                    // Apply global alpha multiplied by _Alpha property
-                    col.a *= _Alpha;
+                    col = _VisibleColor;
+                    col.a = (0.5 + 0.5 * noiseVal); // Full strength for debugging
 
                     accumulated = BlendUnder(accumulated, col);
 
-                    if (accumulated.a >= 0.95)
-                        break;
+                    // if (accumulated.a >= 0.95)
+                    //     break;
 
                     samplePos += rayDir * _StepSize;
                 }
 
                 return accumulated;
             }
+
 
             ENDHLSL
         }

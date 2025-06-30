@@ -70,6 +70,35 @@ Shader "Unlit/VolumeShader"
                 return color;
             }
 
+            float hash(float n) { return frac(sin(n) * 43758.5453); }
+            
+            float noise3D(float3 x) {
+    float3 p = floor(x);
+    float3 f = frac(x);
+    f = f * f * (3.0 - 2.0 * f); // smoothstep
+
+    float n = p.x + p.y * 57.0 + p.z * 113.0;
+
+    float n000 = hash(n + 0.0);
+    float n100 = hash(n + 1.0);
+    float n010 = hash(n + 57.0);
+    float n110 = hash(n + 58.0);
+    float n001 = hash(n + 113.0);
+    float n101 = hash(n + 114.0);
+    float n011 = hash(n + 170.0);
+    float n111 = hash(n + 171.0);
+
+    float nx00 = lerp(n000, n100, f.x);
+    float nx01 = lerp(n001, n101, f.x);
+    float nx10 = lerp(n010, n110, f.x);
+    float nx11 = lerp(n011, n111, f.x);
+
+    float nxy0 = lerp(nx00, nx10, f.y);
+    float nxy1 = lerp(nx01, nx11, f.y);
+
+    return lerp(nxy0, nxy1, f.z);
+}
+
             sampler2D _CameraDepthTexture;
             
             fixed4 frag(v2f i, out float depth : SV_Depth) : SV_Target
@@ -87,7 +116,42 @@ Shader "Unlit/VolumeShader"
                 {
                     if (max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
                     {
-                        float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+                        float3 uvw = samplePosition + float3(0.5, 0.5, 0.5);
+
+                        // Base frequency for noise
+                        float frequency = 10.5;
+
+                        // Compute three distinct noise coords by mixing uvw and some axis-specific constants:
+                        float3 coordX = uvw * frequency + float3(15.3, 42.7, 78.1) + _Time.y * 0.7;
+                        float3 coordY = uvw * frequency + float3(88.2, 17.9, 33.4) + _Time.y * 0.7;
+                        float3 coordZ = uvw * frequency + float3(9.4, 65.1, 21.7) + _Time.y * 0.7;
+
+                        // Sample noise at those coords:
+                        float offsetX = (noise3D(coordX) - 0.5) * 0.05;
+                        float offsetY = (noise3D(coordY) - 0.5) * 0.05;
+                        float offsetZ = (noise3D(coordZ) - 0.5) * 0.05;
+
+                        // Add per-axis distortion:
+                        float3 distortedUVW = uvw + float3(offsetX, offsetY, offsetZ);
+
+                        
+                        // Broader noise for wavy distortion
+                        float3 noiseCoord = uvw * 1.5 + _Time.y * 0.2;
+
+                        float3 noise = float3(
+                            frac(sin(dot(noiseCoord.yz, float2(12.9898, 78.233))) * 43758.5453),
+                            frac(sin(dot(noiseCoord.xz, float2(39.3468, 11.135))) * 12345.6789),
+                            frac(sin(dot(noiseCoord.xy, float2(93.9898, 67.345))) * 98765.4321)
+                        );
+
+                        noise = noise * 2.0 - 1.0; // Map to [-1, 1]
+
+                        // Gentle distortion strength
+                        distortedUVW += noise * 0.025;
+
+
+                        float4 sampledColor = tex3D(_MainTex, distortedUVW);
+
                         sampledColor = lerp(_TopColor, float4(0, 0, 0, 0), sampledColor.r);
                         if (sampledColor.a > 0.001)
                         {
@@ -114,6 +178,9 @@ Shader "Unlit/VolumeShader"
                 depth = finalDepth;
                 return color;
             }
+            
+
+
             ENDCG
         }
     }
