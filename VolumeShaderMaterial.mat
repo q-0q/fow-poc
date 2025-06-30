@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VolumeRaymarchMaterial
-  m_Shader: {fileID: 4800000, guid: 6eeb8699efdeb44999a300fc134b671a, type: 3}
+  m_Name: VolumeShaderMaterial
+  m_Shader: {fileID: 4800000, guid: 3dbc49415fee4768bdeabd310ed9e9e3, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,19 +23,15 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _ResultVolume:
+    - _MainTex:
         m_Texture: {fileID: 8400000, guid: 3106e890f601d45d5af8e2a81158ef6b, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Alpha: 1
-    - _EdgeSoftness: 0
-    - _StepSize: 0.01
-    - _Steps: 24
+    - _Alpha: 0.02
+    - _StepSize: 0.2
     m_Colors:
-    - _BoxMax: {r: 15, g: 0, b: 15, a: 0}
-    - _BoxMin: {r: -15, g: 0, b: -15, a: 0}
-    - _OccludedColor: {r: 0.21698111, g: 0, b: 0, a: 1}
-    - _VisibleColor: {r: 1, g: 0, b: 0, a: 1}
+    - _OccludedColor: {r: 1, g: 1, b: 1, a: 0}
+    - _VisibleColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
