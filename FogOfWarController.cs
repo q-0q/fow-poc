@@ -9,8 +9,8 @@ public class FogOfWarController : MonoBehaviour
     public float visionRadius = 5f;
 
     [Header("Occlusion texture world bounds")]
-    public Vector2 worldMin = new Vector2(0, 0);
-    public Vector2 worldMax = new Vector2(10, 10);
+    public Vector3 worldMin = new Vector3(0, 0, 0);
+    public Vector3 worldMax = new Vector3(10, 0, 10);
     public int textureResolution = 256;
     public ComputeShader computeShader;
     public RenderTexture occlusionTexture;

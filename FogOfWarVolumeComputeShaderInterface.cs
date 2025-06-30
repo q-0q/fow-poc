@@ -29,7 +29,7 @@ public class FogOfWarVolumeComputeShaderInterface
 
     }
 
-    public void Update(Vector2 worldMin, Vector2 worldMax)
+    public void Update(Vector3 worldMin, Vector3 worldMax)
     {
         if (fogComputeShader is null) return;
         if (observerBuffer is null) return;

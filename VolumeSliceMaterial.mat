@@ -35,7 +35,7 @@ Material:
     m_Floats:
     - _SliceAxis: 1
     - _SliceDepth: -0.19
-    - _SliceIndex: -1.61
+    - _SliceIndex: 142.1
     - _VolumeDepth: 256
     m_Colors: []
   m_BuildTextureStacks: []

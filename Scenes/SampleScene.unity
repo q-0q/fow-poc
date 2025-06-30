@@ -345,8 +345,8 @@ MonoBehaviour:
   fogMaterial: {fileID: 2100000, guid: 4c9b8eaa3983e47f68ee5221229fb8cc, type: 2}
   player: {fileID: 59229985}
   visionRadius: 10
-  worldMin: {x: -15, y: -15}
-  worldMax: {x: 15, y: 15}
+  worldMin: {x: -15, y: 0, z: -15}
+  worldMax: {x: 15, y: 0, z: 15}
   textureResolution: 256
   computeShader: {fileID: 7200000, guid: 815748c8fca7745e7afcf60d0ccd401d, type: 3}
   occlusionTexture: {fileID: 8400000, guid: 7aaf9252bd37e4c7391b1138f12ef333, type: 2}

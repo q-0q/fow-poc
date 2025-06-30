@@ -37,11 +37,10 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         for (int i = 0; i < ObserverCount; ++i)
         {
-            float2 observerPosFlat = float2(Observers[i].x, Observers[i].z);
-            float2 worldPosFlat = float2(worldPos.x, worldPos.z);
+            float3 observerPos = float3(Observers[i].x, Observers[i].y, Observers[i].z);
             float radius = Observers[i].w;
 
-            float2 toVoxel = worldPosFlat - observerPosFlat;
+            float3 toVoxel = worldPos - observerPos;
             float dist = length(toVoxel);
 
             if (dist <= radius)
