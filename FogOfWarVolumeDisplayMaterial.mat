@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FogOfWarComputeDisplay
-  m_Shader: {fileID: 4800000, guid: 6c3c65799ed3d4a9da47b62da6e8f7b7, type: 3}
+  m_Name: FogOfWarVolumeDisplayMaterial
+  m_Shader: {fileID: 4800000, guid: 6eeb8699efdeb44999a300fc134b671a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,14 +23,17 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _FogTex:
-        m_Texture: {fileID: 8400000, guid: 1b41669c2accb40448aa3a7ead680e16, type: 2}
+    - _FogVolumeTex:
+        m_Texture: {fileID: 8400000, guid: 3106e890f601d45d5af8e2a81158ef6b, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BlurSize: 0.0025
+    - _Density: 0.25
+    - _StepSize: 0.1
     m_Colors:
-    - _FogColor: {r: 0.04397112, g: 0, b: 0.13207537, a: 0.5647059}
-    - _VisibleColor: {r: 0.043137256, g: 0, b: 0.13333334, a: 0}
+    - _FogColor: {r: 0, g: 0, b: 0, a: 1}
+    - _VisibleColor: {r: 1, g: 1, b: 1, a: 1}
+    - _WorldMax: {r: 15, g: 5, b: 15, a: 0}
+    - _WorldMin: {r: -15, g: 0, b: -15, a: 0}
   m_BuildTextureStacks: []

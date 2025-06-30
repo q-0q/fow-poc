@@ -1,16 +1,18 @@
-Shader "Custom/URP/FogOfWarComputeDisplay"
+Shader "Custom/URP/FogOfWarVolume"
 {
     Properties
     {
-        _FogTex ("Fog Texture", 2D) = "white" {}
+        _FogTex ("Visibility Texture", 2D) = "white" {}
         _VisibleColor ("Visible Color", Color) = (1,1,1,1)
         _FogColor ("Fog Color", Color) = (0,0,0,1)
-        _BlurSize ("Blur Size (in UV space)", Float) = 0.005
+        _WorldMin ("World Min (XZ)", Vector) = (0,0,0,0)
+        _WorldSize ("World Size (XZ)", Vector) = (10,0,10,0)
+        _AlphaCutoff ("Alpha Cutoff", Float) = 0.01
     }
 
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Overlay" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent+1" }
         Pass
         {
             ZWrite Off
@@ -26,50 +28,49 @@ Shader "Custom/URP/FogOfWarComputeDisplay"
             SAMPLER(sampler_FogTex);
             float4 _VisibleColor;
             float4 _FogColor;
-            float _BlurSize;
+            float4 _WorldMin;
+            float4 _WorldSize;
+            float _AlphaCutoff;
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                float3 positionWS : TEXCOORD0;
             };
 
             Varyings vert(Attributes v)
             {
                 Varyings o;
-                o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
-                o.uv = v.uv;
+                float3 worldPos = TransformObjectToWorld(v.positionOS.xyz);
+                o.positionCS = TransformWorldToHClip(worldPos);
+                o.positionWS = worldPos;
                 return o;
             }
 
             float4 frag(Varyings i) : SV_Target
             {
-                float2 uv = i.uv;
-                float visibility = 0.0;
-                int samples = 0;
+    float2 uv = float2(
+        (i.positionWS.x - _WorldMin.x) / _WorldSize.x,
+        (i.positionWS.z - _WorldMin.z) / _WorldSize.z
+    );
+    uv = clamp(uv, 0, 1);
 
-                // 3x3 blur kernel
-                for (int x = -1; x <= 1; x++)
-                {
-                    for (int y = -1; y <= 1; y++)
-                    {
-                        float2 offset = float2(x, y) * _BlurSize;
-                        float sample = SAMPLE_TEXTURE2D(_FogTex, sampler_FogTex, uv + offset).r;
-                        visibility += sample;
-                        samples++;
-                    }
-                }
+    float visibility = SAMPLE_TEXTURE2D(_FogTex, sampler_FogTex, uv).r;
 
-                visibility /= samples;
+    // if (visibility <= _AlphaCutoff)
+    //     discard;
 
-                return lerp(_FogColor, _VisibleColor, visibility);
+    float4 col = lerp(_FogColor, _VisibleColor, visibility);
+    col.a = lerp(_FogColor.a, _VisibleColor.a, visibility);
+
+    return col;
             }
+
             ENDHLSL
         }
     }
