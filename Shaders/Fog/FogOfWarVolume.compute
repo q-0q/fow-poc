@@ -9,6 +9,8 @@ int ObserverCount;
 
 float3 WorldMin;
 float3 WorldMax;
+matrix VolumeToWorldMatrix;
+matrix WorldToVolumeMatrix;
 int3 VolumeSize;
 
 [numthreads(8,8,1)]
@@ -16,10 +18,15 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= VolumeSize.x || id.y >= VolumeSize.y || id.z >= VolumeSize.z) return;
 
-    float3 voxelNorm = (id + 0.5f) / VolumeSize;
-    float3 worldPos = lerp(WorldMin, WorldMax, voxelNorm);
+    float3 voxelNorm = (id + 0.5f) / VolumeSize; // [0,1] normalized
+    float3 worldPos = mul(VolumeToWorldMatrix, float4(voxelNorm, 1.0)).xyz;
 
-    float2 uvOcc = (worldPos.xz - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
+
+    // Project world position into local 2D plane used by this volume’s occlusion map
+    float3 volumeNormPos = mul(WorldToVolumeMatrix, float4(worldPos, 1.0)).xyz; // ✅
+    float2 uvOcc = volumeNormPos.xz; // or yz / xz depending on occlusion orientation
+
+
     float occlusion = OcclusionTex.SampleLevel(sampler_OcclusionTex, uvOcc, 0).r;
 
     float visible = 0.0f;
@@ -34,7 +41,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
         if (dist > radius)
             continue;
-
+        
         if (occlusion < 0.5f)
         {
             // Obstacle voxel: reveal if within range, ignore line of sight
@@ -47,7 +54,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             float2 dirXZ = normalize(toVoxel.xz);
             float2 originXZ = observerPos.xz;
             float2 targetXZ = worldPos.xz;
-
+        
             const int steps = 64;
             bool blocked = false;
             for (int s = 0; s < steps; ++s)
@@ -55,7 +62,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
                 float t = s / (float)(steps - 1);
                 float2 sampleXZ = lerp(originXZ, targetXZ, t);
                 float2 sampleUV = (sampleXZ - WorldMin.xz) / (WorldMax.xz - WorldMin.xz);
-
+        
                 float occSample = OcclusionTex.SampleLevel(sampler_OcclusionTex, sampleUV, 0).r;
                 if (occSample < 0.5f)
                 {
@@ -63,7 +70,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
                     break;
                 }
             }
-
+        
             if (!blocked)
             {
                 visible = 1.0f;

@@ -24,7 +24,7 @@ public class FogOfWarController : MonoBehaviour
     void Start()
     {
         _fogVolumeCompute = new FogOfWarVolumeComputeShaderInterface();
-        _fogVolumeCompute.Start(computeVolumeShader, computeVolumeMaterial, occlusionTexture, outputVolumeTexture);
+        _fogVolumeCompute.Start(computeVolumeShader, computeVolumeMaterial);
 
     }
     
@@ -32,7 +32,11 @@ public class FogOfWarController : MonoBehaviour
     void ComputeShader()
     {
         HandleUnitVisibility();
-        _fogVolumeCompute.Update(worldMin, worldMax);
+
+        foreach (var fogVolume in FindObjectsOfType<FogVolume>())
+        {
+            _fogVolumeCompute.Update(fogVolume);
+        }
     }
 
     void HandleUnitVisibility()

@@ -48,6 +48,11 @@ Shader "Unlit/VolumeShader"
             float4 _TopColor;
             float4 _BottomColor;
 
+            float4x4 _VolumeToWorldMatrix;
+            float3 _WorldMin;
+            float3 _WorldMax;
+
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -104,7 +109,7 @@ Shader "Unlit/VolumeShader"
             fixed4 frag(v2f i, out float depth : SV_Depth) : SV_Target
             {
                 float3 rayOrigin = i.objectVertex;
-                float3 rayDirection = mul(unity_WorldToObject, float4(normalize(i.vectorToSurface), 1));
+                float3 rayDirection = mul((float3x3)unity_WorldToObject, normalize(i.vectorToSurface));
 
                 float4 color = float4(0, 0, 0, 0);
                 float3 samplePosition = rayOrigin;
@@ -116,8 +121,16 @@ Shader "Unlit/VolumeShader"
                 {
                     if (max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
                     {
-                        float3 uvw = samplePosition + float3(0.5, 0.5, 0.5);
 
+                        float3 volumeCoord = samplePosition + float3(0.5, 0.5, 0.5);
+
+                        // Now use volume-to-world matrix
+                        float3 worldPos = mul(_VolumeToWorldMatrix, float4(volumeCoord, 1.0)).xyz;
+
+                        // Map to [0,1] for sampling the texture
+                        float3 uvw = (worldPos - _WorldMin) / (_WorldMax - _WorldMin);
+                        
+                        
                         // Base frequency for noise
                         float frequency = 10.5;
 
@@ -150,7 +163,7 @@ Shader "Unlit/VolumeShader"
                         distortedUVW += noise * 0.015;
 
 
-                        float4 sampledColor = tex3D(_MainTex, distortedUVW);
+                        float4 sampledColor = tex3D(_MainTex, uvw);
 
                         sampledColor = lerp(_TopColor, float4(0, 0, 0, 0), sampledColor.r);
                         if (sampledColor.a > 0.001)

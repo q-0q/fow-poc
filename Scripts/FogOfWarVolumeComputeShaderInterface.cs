@@ -6,24 +6,14 @@ public class FogOfWarVolumeComputeShaderInterface
 {
     public Material fogMaterial;
     public ComputeShader fogComputeShader;
-    public RenderTexture occlusionTexture;
-    
-    private RenderTexture outputTexture;
     private ComputeBuffer observerBuffer;
     private int kernelID;
     
-    public void Start(ComputeShader _fogComputeShader, Material _fogMaterial, RenderTexture _occlusionTexture, RenderTexture _outputTexture)
+    public void Start(ComputeShader _fogComputeShader, Material _fogMaterial)
     {
 
         fogComputeShader = _fogComputeShader;
         fogMaterial = _fogMaterial;
-        occlusionTexture = _occlusionTexture;
-        
-        outputTexture = _outputTexture;
-        outputTexture.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
-        outputTexture.volumeDepth = 256;
-        outputTexture.enableRandomWrite = true;
-        outputTexture.Create();;
         kernelID = fogComputeShader.FindKernel("CSMain");
         
         Camera.main.depthTextureMode |= DepthTextureMode.Depth;
@@ -33,30 +23,48 @@ public class FogOfWarVolumeComputeShaderInterface
 
     }
 
-    public void Update(Vector3 worldMin, Vector3 worldMax)
+    public void Update(FogVolume fogVolume)
     {
         if (fogComputeShader is null) return;
         if (observerBuffer is null) return;
 
+        var bounds = fogVolume.GetWorldBounds();
+        var worldMin = bounds.min;
+        var worldMax = bounds.max;
+        
+        Debug.Log("min: " + worldMin + ", max:" + worldMax);
+        
         // Set compute shader parameters
-        fogComputeShader.SetTexture(kernelID, "ResultVolume", outputTexture);
-        fogComputeShader.SetTexture(kernelID, "OcclusionTex", occlusionTexture);
+        fogComputeShader.SetTexture(kernelID, "ResultVolume", fogVolume.OutputVolumeTexture);
+        fogComputeShader.SetTexture(kernelID, "OcclusionTex", fogVolume.OcclusionTexture);
         fogComputeShader.SetBuffer(kernelID, "Observers", observerBuffer);
         fogComputeShader.SetVector("WorldMin", worldMin);
         fogComputeShader.SetVector("WorldMax", worldMax);
-        fogComputeShader.SetInts("VolumeSize", outputTexture.width, outputTexture.height, outputTexture.volumeDepth);
+        fogComputeShader.SetInts("VolumeSize", fogVolume.OutputVolumeTexture.width, fogVolume.OutputVolumeTexture.height, fogVolume.OutputVolumeTexture.volumeDepth);
         
 
-        int groupsX = Mathf.CeilToInt(outputTexture.width / 8.0f);
-        int groupsY = Mathf.CeilToInt(outputTexture.height / 8.0f);
-        int groupsZ = outputTexture.volumeDepth; // since thread group size z is 1
+        Vector3 scale = worldMax - worldMin;
+        Vector3 offset = worldMin;
+        Matrix4x4 volumeToWorld = Matrix4x4.TRS(offset, Quaternion.identity, scale);
+        Matrix4x4 worldToVolume = volumeToWorld.inverse;
+        
+        
+        fogComputeShader.SetMatrix("VolumeToWorldMatrix", volumeToWorld);
+        fogComputeShader.SetMatrix("WorldToVolumeMatrix", worldToVolume);
+        
+
+        int groupsX = Mathf.CeilToInt(fogVolume.OutputVolumeTexture.width / 8.0f);
+        int groupsY = Mathf.CeilToInt(fogVolume.OutputVolumeTexture.height / 8.0f);
+        int groupsZ = fogVolume.OutputVolumeTexture.volumeDepth; // since thread group size z is 1
         fogComputeShader.Dispatch(kernelID, groupsX, groupsY, groupsZ);
         
-        fogMaterial.SetVector("_BoxMin", worldMin);
-        fogMaterial.SetVector("_BoxMax", worldMax);
-        fogMaterial.SetFloat("_Time", Time.time);
+        var props = new MaterialPropertyBlock();
+        props.SetTexture("_MainTex", fogVolume.OutputVolumeTexture);
+        props.SetVector("_WorldMin", bounds.min);
+        props.SetVector("_WorldMax", bounds.max);
+        props.SetMatrix("_VolumeToWorldMatrix", volumeToWorld); // <-- this is critical
 
-        
+        fogVolume.SetMaterialProps(props);
     }
     
     public void UpdateUnits(List<Unit> units)
@@ -76,13 +84,5 @@ public class FogOfWarVolumeComputeShaderInterface
 
         observerBuffer.SetData(data);
         
-    }
-
-    public void OnDestroy()
-    {
-        if (observerBuffer != null)
-            observerBuffer.Release();
-        if (outputTexture != null)
-            outputTexture.Release();
     }
 }

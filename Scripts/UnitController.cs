@@ -64,7 +64,7 @@ public class UnitController : MonoBehaviour
         Debug.DrawRay(selectedUnitTransform.position, Vector3.up * 15f, Color.green);
         cameraHolder.position =
             Vector3.Lerp(cameraHolder.position, selectedUnitTransform.position, Time.deltaTime * 8f);
-        cameraHolder.rotation = Quaternion.Euler(Input.mousePosition.y, Input.mousePosition.x , 0);
+        // cameraHolder.rotation = Quaternion.Euler(Input.mousePosition.y, Input.mousePosition.x , 0);
     }
 
     public List<Unit> GetAlignedUnits()
