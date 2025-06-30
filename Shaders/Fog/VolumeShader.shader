@@ -147,7 +147,7 @@ Shader "Unlit/VolumeShader"
                         noise = noise * 2.0 - 1.0; // Map to [-1, 1]
 
                         // Gentle distortion strength
-                        distortedUVW += noise * 0.025;
+                        distortedUVW += noise * 0.015;
 
 
                         float4 sampledColor = tex3D(_MainTex, distortedUVW);

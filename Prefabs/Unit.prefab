@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alignment: 0
-  viewRange: 8
+  viewRange: 12
   center: {x: 0, y: 0, z: 0}
 --- !u!136 &7464957302629556023
 CapsuleCollider:
